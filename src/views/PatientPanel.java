@@ -33,29 +33,25 @@ import models.User;
  *
  * @author zianwar
  */
-public class PatientPanel extends javax.swing.JPanel implements ListSelectionListener{
+public class PatientPanel extends javax.swing.JPanel implements ListSelectionListener {
 
-    
     private Patient patient;
     private Patient selectedPatient;
-    
-    
+
     /**
      * Creates new form PatientPanel
      */
     public PatientPanel() {
         initComponents();
-         if(!User.getConnectedUser().getRole().equals("docteur"))
-        {
-            
+        if (!User.getConnectedUser().getRole().equals("docteur")) {
+
         }
         refreshTable(DAOFactory.getPatientDAO().all());
-        
+
         ListSelectionModel selectionModel = patientsTable.getSelectionModel();
         selectionModel.addListSelectionListener(this);
         selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        
-        
+
         searchButton.addActionListener(new ActionListener() {
 
             @Override
@@ -63,36 +59,55 @@ public class PatientPanel extends javax.swing.JPanel implements ListSelectionLis
                 patientsTable.repaint();;
                 refreshTable(DAOFactory.getPatientDAO().like(searchTextField.getText()));
             }
-            
+
         });
-        
+
         searchTextField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if(e.getKeyCode() == KeyEvent.VK_ENTER ) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     patientsTable.repaint();
                     refreshTable(DAOFactory.getPatientDAO().like(searchTextField.getText()));
                 }
-            } 
+            }
         });
-        
-        
+
         profilePanel.setVisible(false);
         createUpdatePatientPanel.setVisible(false);
+        
+        setVisibleData(false);
+    }
+    
+    public void setVisibleData(Boolean isVisible){
+        if (!isVisible){
+            patientsTable.getColumnModel().getColumn(0).setMinWidth(0);
+            patientsTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        }
     }
 
     public void refreshTable(Vector<Patient> patients) {
         try {
-            patientsTable.setModel(TableModelBuilder.buildPatientTableModel(patients));
+            DefaultTableModel model = (DefaultTableModel) patientsTable.getModel();
+            model.setRowCount(0);
+            Object[] row = new Object[7];
+            for (int i = 0; i < patients.size(); i++) {
+                Patient p = patients.get(i);
+                row[0] = p.getPatientId();
+                row[1] = i;
+                row[2] = p.getName();
+                row[3] = p.getLastName();
+                model.addRow(row);
+            }
+
+           // patientsTable.setModel(TableModelBuilder.buildPatientTableModel(patients));
         } catch (Exception ex) {
             patientsTable.repaint();
         }
     }
-    
-    
+
     public void loadProfilePanel(Patient currentPatient) {
         this.patient = currentPatient;
-        
+
         patientName.setText(currentPatient.getLastName() + " " + currentPatient.getName());
         patientSex.setText(currentPatient.getSexe().toUpperCase());
         patientAge.setText(Integer.toString(Utils.getAge(currentPatient.getBirthDate())));
@@ -101,7 +116,7 @@ public class PatientPanel extends javax.swing.JPanel implements ListSelectionLis
         diagnosticsListe.setModel(TableModelBuilder.buildPatientDiagnosticsTableModel(DAOFactory.getConsultationDAO().all(currentPatient.getPatientId())));
         allergiesListe.setModel(TableModelBuilder.buildPatientAllergiesTableModel(DAOFactory.getConsultationDAO().all(currentPatient.getPatientId())));
     }
-     
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -191,13 +206,13 @@ public class PatientPanel extends javax.swing.JPanel implements ListSelectionLis
 
         patientsTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null}
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
             },
             new String [] {
-                "N˚ Patient", "Nom", "Prénom"
+                "", "N˚ Patient", "Nom", "Prénom"
             }
         ));
         jScrollPane1.setViewportView(patientsTable);
@@ -214,7 +229,7 @@ public class PatientPanel extends javax.swing.JPanel implements ListSelectionLis
         patientsListPanelLayout.setVerticalGroup(
             patientsListPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, patientsListPanelLayout.createSequentialGroup()
-                .addContainerGap(14, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -571,21 +586,21 @@ public class PatientPanel extends javax.swing.JPanel implements ListSelectionLis
     private void displayProfileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_displayProfileButtonActionPerformed
         String num = null;
         try {
-            TableModel model = (TableModel)patientsTable.getModel();
+            TableModel model = (TableModel) patientsTable.getModel();
             num = String.valueOf(model.getValueAt(patientsTable.getSelectedRow(), 0));
-        } catch(Exception e) {
-            JOptionPane.showMessageDialog(this, "Veuillez sélectionner un patient", "Erreur", JOptionPane.ERROR_MESSAGE);        
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Veuillez sélectionner un patient", "Erreur", JOptionPane.ERROR_MESSAGE);
         }
-        
-        if(num != null) {
-            try { 
-                
+
+        if (num != null) {
+            try {
+
                 Patient currentPatient = DAOFactory.getPatientDAO().find(num);
                 loadProfilePanel(currentPatient);
                 mainPanel.setVisible(false);
                 profilePanel.setVisible(true);
                 //new PatientFrame(currentPatient).setVisible(true);
-        
+
             } catch (Exception e) {
                 System.out.println("Erreur lors de l'affichage");
             }
@@ -595,17 +610,17 @@ public class PatientPanel extends javax.swing.JPanel implements ListSelectionLis
     private void deletePatientButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deletePatientButtonActionPerformed
         String num = null;
         try {
-            TableModel model = (TableModel)patientsTable.getModel();
+            TableModel model = (TableModel) patientsTable.getModel();
             num = String.valueOf(model.getValueAt(patientsTable.getSelectedRow(), 0));
-         } catch(Exception e) {
-            JOptionPane.showMessageDialog(this, "Veuillez sélectionner un patient", "Erreur", JOptionPane.ERROR_MESSAGE);        
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Veuillez sélectionner un patient", "Erreur", JOptionPane.ERROR_MESSAGE);
         }
-        if(num != null) {
+        if (num != null) {
             int val = JOptionPane.showConfirmDialog(this, "Voulez-vous vraiment supprimer ce patient?", "Validation", JOptionPane.OK_CANCEL_OPTION);
-            if(val == 0) {
+            if (val == 0) {
                 Patient currentPatient = DAOFactory.getPatientDAO().find(num);
                 DAOFactory.getPatientDAO().delete(currentPatient);
-                        
+
                 SwingUtilities.updateComponentTreeUI(this);
                 this.invalidate();
                 this.validate();
@@ -619,13 +634,13 @@ public class PatientPanel extends javax.swing.JPanel implements ListSelectionLis
     private void modifyPatientButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_modifyPatientButtonActionPerformed
         String num = null;
         try {
-            TableModel model = (TableModel)patientsTable.getModel();
+            TableModel model = (TableModel) patientsTable.getModel();
             num = String.valueOf(model.getValueAt(patientsTable.getSelectedRow(), 0));
-        } catch(Exception e) {
-            JOptionPane.showMessageDialog(this, "Veuillez sélectionner un patient", "Erreur", JOptionPane.ERROR_MESSAGE);        
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Veuillez sélectionner un patient", "Erreur", JOptionPane.ERROR_MESSAGE);
         }
-        
-        if(num != null) {
+
+        if (num != null) {
             try {
                 FirstNameText.setText(selectedPatient.getLastName());
                 lastNameText.setText(selectedPatient.getName());
@@ -634,20 +649,20 @@ public class PatientPanel extends javax.swing.JPanel implements ListSelectionLis
                 cityTextField.setText(selectedPatient.getCity());
                 phoneTextField.setText(selectedPatient.getTelephone());
                 sexChoice.setSelectedItem(selectedPatient.getSexe());
-                
-                String yearMonthDay[]=selectedPatient.getBirthDate().toString().split("-");
-        
+
+                String yearMonthDay[] = selectedPatient.getBirthDate().toString().split("-");
+
                 yearTextField.setText(yearMonthDay[0]);
                 monthChoice.setSelectedItem(yearMonthDay[1]);
                 dayChoice.setSelectedItem(yearMonthDay[2]);
-                
+
                 createUpdatePatientPanel.setVisible(true);
                 addOrUpdateButton.setText("Modifier");
                 mainPanel.setVisible(false);
                 profilePanel.setVisible(false);
-        } catch (Exception e) {
-            System.out.println("Erreur lors de l'ajout");
-        }
+            } catch (Exception e) {
+                System.out.println("Erreur lors de l'ajout");
+            }
         }
     }//GEN-LAST:event_modifyPatientButtonActionPerformed
 
@@ -668,12 +683,10 @@ public class PatientPanel extends javax.swing.JPanel implements ListSelectionLis
     }//GEN-LAST:event_addRemindButtonActionPerformed
 
     private void addOrUpdateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addOrUpdateButtonActionPerformed
-        
-        
-        
+
         if (addOrUpdateButton.getText().equalsIgnoreCase("Ajouter")) {
             Patient patientCreated = new Patient();
-       
+
             patientCreated.setName(FirstNameText.getText());
             patientCreated.setLastName(lastNameText.getText());
             patientCreated.setAddress(addressTextFiled.getText());
@@ -681,48 +694,49 @@ public class PatientPanel extends javax.swing.JPanel implements ListSelectionLis
             patientCreated.setCity(cityTextField.getText());
             patientCreated.setSexe(sexChoice.getSelectedItem().toString());
             patientCreated.setTelephone(phoneTextField.getText());
-            
-            String sdate = yearTextField.getText() + "-" + monthChoice.getSelectedItem().toString() + "-"+dayChoice.getSelectedItem().toString();
+
+            String sdate = yearTextField.getText() + "-" + monthChoice.getSelectedItem().toString() + "-" + dayChoice.getSelectedItem().toString();
             SimpleDateFormat spdf = new SimpleDateFormat("yyyy-MM-dd");
-            
-            java.util.Date resultDate = null; 
-            
+
+            java.util.Date resultDate = null;
+
             try {
                 resultDate = spdf.parse(sdate);
-                
+
             } catch (ParseException ex) {
                 Logger.getLogger(PatientPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+
             patientCreated.setBirthDate(new Date(resultDate.getTime()));
-            
+
             if (DAOFactory.getPatientDAO().create(patientCreated)) {
                 JOptionPane.showMessageDialog(this, "Patient crée", "Info", JOptionPane.INFORMATION_MESSAGE);
                 createUpdatePatientPanel.setVisible(false);
                 profilePanel.setVisible(false);
 
                 try {
-                    patientsTable.setModel(TableModelBuilder.buildPatientTableModel(DAOFactory.getPatientDAO().all()));
-                } catch(Exception e) {
+                    //patientsTable.setModel(TableModelBuilder.buildPatientTableModel(DAOFactory.getPatientDAO().all()));
+                    refreshTable(DAOFactory.getPatientDAO().all());
+                } catch (Exception e) {
                     SwingUtilities.updateComponentTreeUI(this);
                     this.invalidate();
                     this.validate();
                     this.repaint();
                     patientsTable.repaint();
                 }
-                        
+
                 mainPanel.setVisible(true);
             } else {
                 JOptionPane.showMessageDialog(this, "Erreur lors de la création", "Erreur", JOptionPane.ERROR_MESSAGE);
             }
-            
+
         }
-        
+
         if (addOrUpdateButton.getText().equalsIgnoreCase("Modifier")) {
             Patient newPatient = new Patient();
-            
+
             if (selectedPatient != null) {
-                
+
                 newPatient.setName(FirstNameText.getText());
                 newPatient.setLastName(lastNameText.getText());
                 newPatient.setAddress(addressTextFiled.getText());
@@ -731,11 +745,11 @@ public class PatientPanel extends javax.swing.JPanel implements ListSelectionLis
                 newPatient.setSexe(sexChoice.getSelectedItem().toString());
                 newPatient.setTelephone(phoneTextField.getText());
                 newPatient.setPatientId(selectedPatient.getPatientId());
-                
-                String sdate = yearTextField.getText() + "-" + monthChoice.getSelectedItem().toString() + "-"+dayChoice.getSelectedItem().toString();
+
+                String sdate = yearTextField.getText() + "-" + monthChoice.getSelectedItem().toString() + "-" + dayChoice.getSelectedItem().toString();
                 SimpleDateFormat spdf = new SimpleDateFormat("yyyy-MM-dd");
 
-                java.util.Date resultDate = null; 
+                java.util.Date resultDate = null;
 
                 try {
                     resultDate = spdf.parse(sdate);
@@ -743,44 +757,34 @@ public class PatientPanel extends javax.swing.JPanel implements ListSelectionLis
                     Logger.getLogger(PatientPanel.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
-
                 newPatient.setBirthDate(new Date(resultDate.getTime()));
                 if (DAOFactory.getPatientDAO().update(newPatient)) {
                     JOptionPane.showMessageDialog(this, "Patient mis a jour.", "Info", JOptionPane.INFORMATION_MESSAGE);
                     createUpdatePatientPanel.setVisible(false);
                     profilePanel.setVisible(false);
-                    
+
                     try {
-                        patientsTable.setModel(TableModelBuilder.buildPatientTableModel(DAOFactory.getPatientDAO().all()));
-                    } catch(Exception e) {
+                        //patientsTable.setModel(TableModelBuilder.buildPatientTableModel(DAOFactory.getPatientDAO().all()));
+                        refreshTable(DAOFactory.getPatientDAO().all());
+                    } catch (Exception e) {
                         SwingUtilities.updateComponentTreeUI(this);
                         this.invalidate();
                         this.validate();
                         this.repaint();
                         patientsTable.repaint();
                     }
-                    
+
                     mainPanel.setVisible(true);
                 } else {
                     JOptionPane.showMessageDialog(this, "Erreur lors de la mise à jour", "Erreur", JOptionPane.ERROR_MESSAGE);
                 }
-                
+
             } else {
                 JOptionPane.showMessageDialog(this, "Selectionner d'abord un patient", "Erreur", JOptionPane.ERROR_MESSAGE);
             }
-           
-        
-            
-            
-            
-         
-            
-            
-        }
-        
 
-           
-        
+        }
+
 
     }//GEN-LAST:event_addOrUpdateButtonActionPerformed
 
@@ -861,26 +865,24 @@ public class PatientPanel extends javax.swing.JPanel implements ListSelectionLis
     @Override
     public void valueChanged(ListSelectionEvent event) {
         if (event.getSource() == patientsTable.getSelectionModel() && event.getValueIsAdjusting()) {
-            
-            TableModel model = (TableModel)patientsTable.getModel();
+
+            TableModel model = (TableModel) patientsTable.getModel();
             String num = String.valueOf(model.getValueAt(patientsTable.getSelectedRow(), 0));
-           
+
             Patient patientSelected = DAOFactory.getPatientDAO().find(num);
             patientSelected.setPatientId(Integer.parseInt(num));
             this.selectedPatient = patientSelected;
-           
-            
-            
+
             patientNumberLabel.setText("Patient N˚ " + num);
             lastNameLabel.setText(patientSelected.getLastName());
             nameLabel.setText(patientSelected.getName());
-            
+
             String dob = String.valueOf(patientSelected.getBirthDate());
             int yearDOB = Integer.parseInt(dob.substring(0, 4));
-            
+
             int thisYear = Calendar.getInstance().get(Calendar.YEAR);
-            
-            ageLabel.setText(String.valueOf(thisYear-yearDOB));
+
+            ageLabel.setText(String.valueOf(thisYear - yearDOB));
             genderLabel.setText(patientSelected.getSexe());
             birthDateLabel.setText(dob);
             cinLabel.setText(patientSelected.getCin());

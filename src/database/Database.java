@@ -36,33 +36,13 @@ public class Database {
         return instance;
     }	
 
-    
+    // est ce que elle a le dorit d'ajouter un patient dans le mm jour du consultation ?
+    // r u here !
+    //oui do u know if this app allow tht or not ? nop!  okay
     public void connect() throws ClassNotFoundException, SQLException {
         if (conn != null)
             return;
-        Properties prop = new Properties();
-	       InputStream input = null;
- 
-	try {
- 
-		input = new FileInputStream("config.properties");
-                // load properties to project root folder
-		prop.load(input);
-                Class.forName(prop.getProperty("driver"));
-                String url = String.format(prop.getProperty("url"), prop.getProperty("port"));
-                conn = DriverManager.getConnection(url, prop.getProperty("dbUser"), prop.getProperty("dbPassword"));
-	} catch (IOException io) {
-		System.out.println("IO problem in Database.java");
-	} finally {
-		if (input != null) {
-			try {
-				input.close();
-			} catch (IOException e) {
-                            System.out.println("Error" + e);
-			}
-		}
- 
-	}
+        conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/medcinium","root","");
  
 //        Class.forName("com.mysql.jdbc.Driver");
 //        String url = String.format("jdbc:mysql://localhost:3306/medcinium", 3306);
@@ -82,7 +62,8 @@ public class Database {
             rs = st.executeQuery(q);
             
         } catch (Exception e) {
-            System.err.println("Error Message : problem in query() method." + e);
+            e.printStackTrace();
+            //System.err.println("Error Message : problem in query() method." + e);
         } 
         
         return rs;

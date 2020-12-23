@@ -20,6 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
@@ -33,75 +34,84 @@ import models.dao.DAO;
 import models.dao.DAOFactory;
 import org.jdesktop.swingx.JXMonthView;
 import static views.Utils.buildTableModel;
+import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 /**
  *
  * @author zianwar
+ *
+ * oka
  */
 public class AccueilPanel extends javax.swing.JPanel implements ListSelectionListener {
-    
+
     private Vector<Consultation> pendingConsultation;
     private Vector<Consultation> finishedConsultation;
-    
+
     private boolean ajouterButtonClicked = false;
     private boolean chercherButtonClicked = true;
-    
+
     Patient patientFoundBySearch = new Patient();
     models.Model model;
-    
+
     // For prescriptionPanel
     Consultation consultation;
-    Vector<PatientInfo> allInfos ;
-    Vector<Drug> allDrugs ;
+    Vector<PatientInfo> allInfos;
+    Vector<Drug> allDrugs;
     Vector<Allergy> allAllergies;
-    Vector<PatientInfo> selectedInfos ;
-    Vector<Drug> selectedDrugs ;
+    Vector<PatientInfo> selectedInfos;
+    Vector<Drug> selectedDrugs;
     Vector<Allergy> selectedAllergies;
     // ---------
-    
+
     /**
      * Creates new form AccueilPanel
      */
     public AccueilPanel() {
-        
+
         initComponents();
         refreshModels();
         searchPatientPanel.setVisible(false);
         prescriptionPanel.setVisible(false);
         jXMonthView1.setLocale(Locale.FRENCH);
-        
-        if(!User.getConnectedUser().getRole().equals("docteur"))
-        {
+
+        if (!User.getConnectedUser().getRole().equals("docteur")) {
             beginConsultationButton.setEnabled(false);
         }
-         // create a ListSelectionListener to listen for rows clicked in the table
+        // create a ListSelectionListener to listen for rows clicked in the table
         ListSelectionModel selectionModel = patientsTable.getSelectionModel();
         selectionModel.addListSelectionListener(this);
-        
+
         dateInfo.setDate(new java.util.Date());
+        AutoCompleteDecorator.decorate(drugChoice);
+        AutoCompleteDecorator.decorate(allergyChoice);
+        AutoCompleteDecorator.decorate(infoChoice);
+        
+
     }
-    
+
     public void refreshModels() {
-        pendingConsultationsTable.setModel(TableModelBuilder.buildPendingConsultationTableModel(DAOFactory.getConsultationDAO().byDateAndStatus(new Timestamp(new java.util.Date().getTime()),"pending")));
+        pendingConsultationsTable.setModel(TableModelBuilder
+                .buildPendingConsultationTableModel(DAOFactory.getConsultationDAO()
+                        .byDateAndStatus(new Timestamp(new java.util.Date().getTime()), "pending")));
         this.remindersTable.setModel(TableModelBuilder.buildRemindersConsultationsTableModel(DAOFactory.getReminderDAO().allByDate(Utils.dateFormatter(jXMonthView1.getToday())), DAOFactory.getConsultationDAO().byDate(Utils.dateFormatter(jXMonthView1.getToday()))));
     }
-    
+
     public void loadPrescriptionPanel(Consultation consultation) {
         this.consultation = consultation;
         selectedInfos = new Vector<PatientInfo>();
         selectedDrugs = new Vector<Drug>();
-        selectedAllergies= new Vector<Allergy>();
+        selectedAllergies = new Vector<Allergy>();
         allInfos = DAOFactory.getPatientInfoDAO().all();
-       
+
         for (PatientInfo Info : allInfos) {
             infoChoice.addItem(Info.getProperty());
         }
-        
+
         allDrugs = DAOFactory.getDrugDAO().all();
         for (Drug Drug : allDrugs) {
             drugChoice.addItem(Drug.getDrugName());
         }
-        
+
         allAllergies = DAOFactory.getAllergyDAO().all();
         for (Allergy Allergy : allAllergies) {
             allergyChoice.addItem(Allergy.getAllergyName());
@@ -241,7 +251,7 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
         fileDattentePanelLayout.setHorizontalGroup(
             fileDattentePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(fileDattentePanelLayout.createSequentialGroup()
-                .addContainerGap(14, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(34, 34, 34)
                 .addGroup(fileDattentePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -336,7 +346,7 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
                             .addComponent(rappelsRadioButton1))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(30, Short.MAX_VALUE))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addComponent(jXMonthView1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
 
@@ -554,6 +564,7 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
         });
         contenaire.add(addInfoButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 280, 40, -1));
 
+        infoChoice.setEditable(true);
         infoChoice.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 infoChoiceActionPerformed(evt);
@@ -572,6 +583,7 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
         });
         contenaire.add(undoinfo, new org.netbeans.lib.awtextra.AbsoluteConstraints(720, 290, -1, -1));
 
+        allergyChoice.setEditable(true);
         contenaire.add(allergyChoice, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 370, 160, -1));
 
         addAllergy.setText("+");
@@ -590,6 +602,7 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
         });
         contenaire.add(addDrug, new org.netbeans.lib.awtextra.AbsoluteConstraints(670, 90, 40, -1));
 
+        drugChoice.setEditable(true);
         contenaire.add(drugChoice, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 60, -1, -1));
 
         infos.setBackground(new java.awt.Color(237, 237, 237));
@@ -669,38 +682,38 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
     }// </editor-fold>//GEN-END:initComponents
 
     private void jXMonthView1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jXMonthView1ActionPerformed
-        
+
         conRapButtonGroup.clearSelection();
         String selectedDate = Utils.dateFormatter(jXMonthView1.getSelectionDate());
         this.remindersTable.setModel(TableModelBuilder.buildRemindersConsultationsTableModel(DAOFactory.getReminderDAO().allByDate(selectedDate), DAOFactory.getConsultationDAO().byDate(selectedDate)));
-    
+
     }//GEN-LAST:event_jXMonthView1ActionPerformed
 
     private void beginConsultationButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_beginConsultationButtonActionPerformed
         String num = null;
         try {
-            TableModel model = (TableModel)pendingConsultationsTable.getModel();
+            TableModel model = (TableModel) pendingConsultationsTable.getModel();
             num = String.valueOf(model.getValueAt(pendingConsultationsTable.getSelectedRow(), 0));
-        } catch(Exception e) {
-            JOptionPane.showMessageDialog(this, "Veuillez sélectionner un patient", "Erreur", JOptionPane.ERROR_MESSAGE);        
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Veuillez sélectionner un patient", "Erreur", JOptionPane.ERROR_MESSAGE);
         }
-        
-        if(num != null) {
+
+        if (num != null) {
             try {
                 Consultation currentConsultation = DAOFactory.getConsultationDAO().find(num);
                 loadPrescriptionPanel(currentConsultation);
                 //new prescriptionFrame(currentConsultation).setVisible(true);
-            
+
             } catch (Exception e) {
                 System.out.println("Erreur lors de la modification");
             }
-            
+
             refreshModels();
             mainPanel.setVisible(false);
             newReservationPanel.setVisible(false);
             prescriptionPanel.setVisible(true);
         }
-        
+
     }//GEN-LAST:event_beginConsultationButtonActionPerformed
 
     private void addPatientButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPatientButton1ActionPerformed
@@ -713,18 +726,18 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
 
     private void reserverButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reserverButtonActionPerformed
         mainPanel.setVisible(false);
-        
+
         searchPatientPanel.repaint();
         searchPatientPanel.revalidate();
         searchPatientPanel.setVisible(true);
-        
+
         patientsListPanel.setVisible(false);
         newPatientPanel.setVisible(false);
         newConsultationPanel.setVisible(false);
     }//GEN-LAST:event_reserverButtonActionPerformed
 
     private void searchButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButton1ActionPerformed
-        
+
         patientsTable.repaint();
         refreshTable(DAOFactory.getPatientDAO().like(searchTextField1.getText()));
         patientsListPanel.setVisible(true);
@@ -735,84 +748,128 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
     }//GEN-LAST:event_searchButton1ActionPerformed
 
     private void validerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_validerButtonActionPerformed
-        
+
         Consultation consultation = new Consultation();
-        java.util.Date date = (java.util.Date)(visitDate.getValue());
+        java.util.Date date = (java.util.Date) (visitDate.getValue());
         String hour = new SimpleDateFormat("yyyy-MM-dd hh:mm").format(date);
-        Vector<Consultation> con =  DAOFactory.getConsultationDAO().byHour(hour);
-        
+        Vector<Consultation> con = DAOFactory.getConsultationDAO().byHour(hour);
+
         if (ajouterButtonClicked) {
-            if(con.size() != 0) {
+            if (con.size() != 0) {
                 JOptionPane.showMessageDialog(this, "Il existe une autre réservation à cette heure ci", "Erreur", JOptionPane.ERROR_MESSAGE);
             } else {
-            Patient patientAdded = new Patient();
-            
-            patientAdded.setName(FirstNameText.getText());
-            patientAdded.setLastName(lastNameText.getText());
-            patientAdded.setAddress(addressText.getText());
-            patientAdded.setCin(cinText.getText());
-            patientAdded.setCity(CityText.getText());
-            patientAdded.setSexe(sexChoice.getSelectedItem().toString());
-            patientAdded.setTelephone(PhoneText.getText());
-            patientAdded.setBirthDate(new Date(Integer.parseInt(YearText.getText()),Integer.parseInt(monthChoice.getSelectedItem().toString()), Integer.parseInt(DayChoice.getSelectedItem().toString())));
-            
-            if (DAOFactory.getPatientDAO().create(patientAdded)) {
-                System.out.println("Patient cree dans base donnee" + patientAdded);
-                consultation.setPatient(patientAdded);
-                consultation.setType(typeChoice.getSelectedItem().toString());
-                consultation.setStatus("pending");
-                consultation.setDiagnostics("");
-                
-                consultation.setConsultationDate(new Timestamp(date.getTime()));
+                Patient patientAdded = new Patient();
 
-                if((date).compareTo(new java.util.Date()) < 0) {
-                     JOptionPane.showMessageDialog(this, "Veuillez choisir une date future", "Erreur", JOptionPane.ERROR_MESSAGE);
-                } else {
-                    if( DAOFactory.getConsultationDAO().create(consultation)) {
+                patientAdded.setName(FirstNameText.getText());
+                patientAdded.setLastName(lastNameText.getText());
+                patientAdded.setAddress(addressText.getText());
+                patientAdded.setCin(cinText.getText());
+                patientAdded.setCity(CityText.getText());
+                patientAdded.setSexe(sexChoice.getSelectedItem().toString());
+                patientAdded.setTelephone(PhoneText.getText());
+                patientAdded.setBirthDate(new Date(Integer.parseInt(YearText.getText()), Integer.parseInt(monthChoice.getSelectedItem().toString()), Integer.parseInt(DayChoice.getSelectedItem().toString())));
+
+                if (DAOFactory.getPatientDAO().create(patientAdded)) {
+                    System.out.println("Patient cree dans base donnee" + patientAdded);
+                    consultation.setPatient(patientAdded);
+                    consultation.setType(typeChoice.getSelectedItem().toString());
+                    consultation.setStatus("pending");
+                    consultation.setDiagnostics("");
+
+                    consultation.setConsultationDate(new Timestamp(date.getTime()));
+
+                    if (DAOFactory.getConsultationDAO().create(consultation)) {
                         JOptionPane.showMessageDialog(this, "Réservation ajoutée", "Info", JOptionPane.INFORMATION_MESSAGE);
                     } else {
                         JOptionPane.showMessageDialog(this, "La réservation n'a pas été ajoutée", "Erreur", JOptionPane.ERROR_MESSAGE);
                     }
-                } 
+
+                    /*if((date).compareTo(new java.util.Date()) < 0) {
+                     JOptionPane.showMessageDialog(this, "Veuillez choisir une date future", "Erreur", JOptionPane.ERROR_MESSAGE);
+                     } else {
+                     if( DAOFactory.getConsultationDAO().create(consultation)) {
+                     JOptionPane.showMessageDialog(this, "Réservation ajoutée", "Info", JOptionPane.INFORMATION_MESSAGE);
+                     } else {
+                     JOptionPane.showMessageDialog(this, "La réservation n'a pas été ajoutée", "Erreur", JOptionPane.ERROR_MESSAGE);
+                     }
+                     } */
+                }
             }
         }
-        }
-        
-        if (chercherButtonClicked) {
-            
-            if (patientFoundBySearch != null) {
-                if(con.size() != 0) {
-                JOptionPane.showMessageDialog(this, "Il existe une autre réservation à cette heure ci", "Erreur", JOptionPane.ERROR_MESSAGE);
-            } else {
-                consultation.setPatient(patientFoundBySearch);
-                consultation.setType(typeChoice.getSelectedItem().toString());
-                consultation.setStatus("pending");
-                consultation.setDiagnostics("");
-                date = (java.util.Date)(visitDate.getValue());
-                consultation.setConsultationDate(new Timestamp(date.getTime()));
 
-                if((date).compareTo(new java.util.Date()) < 0) {
-                    JOptionPane.showMessageDialog(this, "Veuillez choisir une date future", "Erreur", JOptionPane.ERROR_MESSAGE);
+        if (chercherButtonClicked) {
+
+            if (patientFoundBySearch != null) {
+                if (con.size() != 0) {
+                    JOptionPane.showMessageDialog(this, "Il existe une autre réservation à cette heure ci", "Erreur", JOptionPane.ERROR_MESSAGE);
                 } else {
-                    if( DAOFactory.getConsultationDAO().create(consultation)) {
+                    consultation.setPatient(patientFoundBySearch);
+                    consultation.setType(typeChoice.getSelectedItem().toString());
+                    consultation.setStatus("pending");
+                    consultation.setDiagnostics("");
+                    date = (java.util.Date) (visitDate.getValue());
+                    consultation.setConsultationDate(new Timestamp(date.getTime()));
+
+                    if (DAOFactory.getConsultationDAO().create(consultation)) {
                         JOptionPane.showMessageDialog(this, "Réservation ajoutée", "Info", JOptionPane.INFORMATION_MESSAGE);
                     } else {
                         JOptionPane.showMessageDialog(this, "La réservation n'a pas été ajoutée", "Erreur", JOptionPane.ERROR_MESSAGE);
                     }
+
+                    /*if((date).compareTo(new java.util.Date()) < 0) {
+                     JOptionPane.showMessageDialog(this, "Veuillez choisir une date future", "Erreur", JOptionPane.ERROR_MESSAGE);
+                     } else {
+                     if( DAOFactory.getConsultationDAO().create(consultation)) {
+                     JOptionPane.showMessageDialog(this, "Réservation ajoutée", "Info", JOptionPane.INFORMATION_MESSAGE);
+                     } else {
+                     JOptionPane.showMessageDialog(this, "La réservation n'a pas été ajoutée", "Erreur", JOptionPane.ERROR_MESSAGE);
+                     }
+                     }*/
                 }
-            } }else {
+            } else {
                 JOptionPane.showMessageDialog(this, "Sélectionner d'abord un patient", "Info", JOptionPane.INFORMATION_MESSAGE);
             }
         }
+
+        mainPanel.setVisible(true);
+        searchPatientPanel.setVisible(false);
+        this.repaint();
+        this.revalidate();
         
+        // recheck it  !!
+
+
     }//GEN-LAST:event_validerButtonActionPerformed
 
     private void addDrugActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addDrugActionPerformed
-        String chaine="";
-        selectedDrugs.add(allDrugs.get(drugChoice.getSelectedIndex()));
-        selectedDrugs.get(selectedDrugs.size()-1).setDrugDescription(drugDesc.getText());
+
+        // new drugs that doesn't exist will be added in here
+        // a check phase if the drug already exist or not need to be added we see it later 
+        Drug drugTemp = new Drug();
+        if (drugChoice.getSelectedIndex() == -1) {
+            // Drug drug = new Drug();
+            drugTemp.setDrugName(drugChoice.getSelectedItem().toString());
+            DAOFactory.getDrugDAO().create(drugTemp);
+
+            allDrugs = DAOFactory.getDrugDAO().all();
+            for (Drug Drug : allDrugs) {
+                drugChoice.addItem(Drug.getDrugName());
+                if (Drug.getDrugName().equals(drugTemp.getDrugName())) {
+                    drugTemp.setDrugId(Drug.getDrugId());
+                }
+            }
+
+            selectedDrugs.add(drugTemp);
+
+        } else {
+            selectedDrugs.add(allDrugs.get(drugChoice.getSelectedIndex()));
+        }
+
+        String chaine = "";
+        //selectedDrugs.add(allDrugs.get(drugChoice.getSelectedIndex()));
+        selectedDrugs.get(selectedDrugs.size() - 1).setDrugDescription(drugDesc.getText());
         for (Drug d : selectedDrugs) {
-            chaine += d.getDrugName()+" : "+d.getDrugDescription()+"\n";
+            chaine += d.getDrugName() + " : " + d.getDrugDescription() + "\n";
         }
         drugList.setText(chaine);
         drugDesc.setText("");
@@ -820,14 +877,14 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
 
     private void undoDrugMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_undoDrugMouseClicked
         try {
-            selectedDrugs.remove(selectedDrugs.size()-1);
-            String chaine="";
+            selectedDrugs.remove(selectedDrugs.size() - 1);
+            String chaine = "";
             for (Drug d : selectedDrugs) {
-                chaine += d.getDrugName()+" : "+d.getDrugDescription()+"\n";
+                chaine += d.getDrugName() + " : " + d.getDrugDescription() + "\n";
             }
             drugList.setText(chaine);
             drugDesc.setText("");
-        }catch(ArrayIndexOutOfBoundsException e){
+        } catch (ArrayIndexOutOfBoundsException e) {
             System.out.println(e);
         }
     }//GEN-LAST:event_undoDrugMouseClicked
@@ -837,24 +894,44 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
     }//GEN-LAST:event_infoChoiceActionPerformed
 
     private void addAllergyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addAllergyActionPerformed
-        String chaine="";
-        selectedAllergies.add(allAllergies.get(allergyChoice.getSelectedIndex()));
+
+        Allergy allergyTemp = new Allergy();
+        if (allergyChoice.getSelectedIndex() == -1) {
+            // Drug drug = new Drug();
+            allergyTemp.setAllergyName(allergyChoice.getSelectedItem().toString());
+            DAOFactory.getAllergyDAO().create(allergyTemp);
+
+            allAllergies = DAOFactory.getAllergyDAO().all();
+            for (Allergy allergy : allAllergies) {
+                allergyChoice.addItem(allergy.getAllergyName());
+                if (allergy.getAllergyName().equals(allergyTemp.getAllergyName())) {
+                    allergyTemp.setAllergyId(allergy.getAllergyId());
+                }
+            }
+
+            selectedAllergies.add(allergyTemp);
+
+        } else {
+            selectedAllergies.add(allAllergies.get(allergyChoice.getSelectedIndex()));
+        }
+        // test it sarah re run it? yp
+        String chaine = "";
         for (Allergy S : selectedAllergies) {
-            chaine += S.getAllergyName()+", ";
+            chaine += S.getAllergyName() + ", ";
         }
         allergies.setText(chaine);
     }//GEN-LAST:event_addAllergyActionPerformed
 
     private void undoAllergyMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_undoAllergyMouseClicked
         try {
-            selectedAllergies.remove(selectedAllergies.size()-1);
+            selectedAllergies.remove(selectedAllergies.size() - 1);
             System.out.println(selectedAllergies);
-            String chaine="";
+            String chaine = "";
             for (Allergy S : selectedAllergies) {
-                chaine += S.getAllergyName()+"; ";
+                chaine += S.getAllergyName() + "; ";
             }
             allergies.setText(chaine);
-        }catch(ArrayIndexOutOfBoundsException e){
+        } catch (ArrayIndexOutOfBoundsException e) {
             System.out.println(e);
         }
 
@@ -863,14 +940,14 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
     private void undoinfoMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_undoinfoMouseClicked
 
         try {
-            selectedInfos.remove(selectedInfos.size()-1);
-            String chaine="";
+            selectedInfos.remove(selectedInfos.size() - 1);
+            String chaine = "";
             for (PatientInfo info : selectedInfos) {
-                chaine += info.getProperty()+"   "+info.getValue()+"   "+info.getDateAdded()+"\n";
+                chaine += info.getProperty() + "   " + info.getValue() + "   " + info.getDateAdded() + "\n";
             }
             infos.setText(chaine);
             valueText.setText("");
-        }catch(ArrayIndexOutOfBoundsException e){
+        } catch (ArrayIndexOutOfBoundsException e) {
             System.out.println(e);
         }
 
@@ -878,12 +955,33 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
 
     private void addInfoButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addInfoButtonActionPerformed
 
-        String chaine="";
-        selectedInfos.add(allInfos.get(infoChoice.getSelectedIndex()));
-        selectedInfos.get(selectedInfos.size()-1).setValue(valueText.getText());
-        selectedInfos.get(selectedInfos.size()-1).setDateAdded(new Date(dateInfo.getDate().getTime()));
+        PatientInfo patientInfoTemp = new PatientInfo();
+        if (infoChoice.getSelectedIndex() == -1) {
+            // Drug drug = new Drug();
+            patientInfoTemp.setProperty(infoChoice.getSelectedItem().toString());
+            DAOFactory.getPatientInfoDAO().create(patientInfoTemp);
+
+            allInfos = DAOFactory.getPatientInfoDAO().all();
+            for (PatientInfo patientInfo : allInfos) {
+                infoChoice.addItem(patientInfo.getProperty());
+                if (patientInfo.getProperty().equals(patientInfoTemp.getProperty())) {
+                    patientInfoTemp.setProperty(patientInfo.getProperty());
+                }
+            }
+
+            selectedInfos.add(patientInfoTemp);
+
+        } else {
+            selectedInfos.add(allInfos.get(infoChoice.getSelectedIndex()));
+        }
+
+        // try is sarah
+        String chaine = "";
+        //selectedInfos.add(allInfos.get(infoChoice.getSelectedIndex()));
+        selectedInfos.get(selectedInfos.size() - 1).setValue(valueText.getText());
+        selectedInfos.get(selectedInfos.size() - 1).setDateAdded(new Date(dateInfo.getDate().getTime()));
         for (PatientInfo info : selectedInfos) {
-            chaine += info.getProperty()+"   "+info.getValue()+"   "+info.getDateAdded()+"\n";
+            chaine += info.getProperty() + "   " + info.getValue() + "   " + info.getDateAdded() + "\n";
         }
         infos.setText(chaine);
         valueText.setText("");
@@ -894,8 +992,8 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
         consultation.setDiagnostics(diagnostiqueText.getText());
         consultation.setStatus("finished");
 
-        if(DAOFactory.getConsultationDAO().update(consultation)) {
-            
+        if (DAOFactory.getConsultationDAO().update(consultation)) {
+
             for (PatientInfo selAllInfo : selectedInfos) {
                 DAOFactory.getConsultationDAO().contient(consultation, selAllInfo);
             }
@@ -903,15 +1001,15 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
             for (Drug drug : selectedDrugs) {
                 DAOFactory.getConsultationDAO().introduit(consultation, drug);
             }
-            
+
             for (Allergy allergy : selectedAllergies) {
                 DAOFactory.getConsultationDAO().renseigne(consultation, allergy);
             }
-            
+
         } else {
             JOptionPane.showMessageDialog(this, "Erreur lors de la création", "Erreur", JOptionPane.ERROR_MESSAGE);
         }
-        
+
         prescriptionPanel.setVisible(false);
         mainPanel.setVisible(true);
         refreshModels();
@@ -922,31 +1020,30 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
     }//GEN-LAST:event_valueTextActionPerformed
 
     private void consultationsRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_consultationsRadioButtonActionPerformed
-         
+
         java.util.Date selectedDate;
-        
+
         if (jXMonthView1.getSelectionDate() == null) {
             selectedDate = jXMonthView1.getToday();
         } else {
             selectedDate = jXMonthView1.getSelectionDate();
         }
-        
+
         this.remindersTable.setModel(TableModelBuilder.buildConsultationsHoursTableModel(DAOFactory.getConsultationDAO().byDate(Utils.dateFormatter(selectedDate))));
     }//GEN-LAST:event_consultationsRadioButtonActionPerformed
 
     private void rappelsRadioButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rappelsRadioButton1ActionPerformed
         java.util.Date selectedDate;
-        
+
         if (jXMonthView1.getSelectionDate() == null) {
             selectedDate = jXMonthView1.getToday();
         } else {
             selectedDate = jXMonthView1.getSelectionDate();
         }
-        
+
         this.remindersTable.setModel(TableModelBuilder.buildRemindersTableModel(DAOFactory.getReminderDAO().allByDate(Utils.dateFormatter(selectedDate))));
     }//GEN-LAST:event_rappelsRadioButton1ActionPerformed
 
-    
     public void refreshTable(Vector<Patient> patients) {
         try {
             patientsTable.setModel(TableModelBuilder.buildPatientTableModel(patients));
@@ -954,7 +1051,7 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
             patientsTable.repaint();
         }
     }
-    
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField CityText;
@@ -1043,10 +1140,10 @@ public class AccueilPanel extends javax.swing.JPanel implements ListSelectionLis
     @Override
     public void valueChanged(ListSelectionEvent e) {
         if (e.getSource() == patientsTable.getSelectionModel() && e.getValueIsAdjusting()) {
-           TableModel model = (TableModel)patientsTable.getModel();
-           String id = model.getValueAt(patientsTable.getSelectedRow(), 0).toString();
-           patientFoundBySearch = DAOFactory.getPatientDAO().find(id);
-           
+            TableModel model = (TableModel) patientsTable.getModel();
+            String id = model.getValueAt(patientsTable.getSelectedRow(), 0).toString();
+            patientFoundBySearch = DAOFactory.getPatientDAO().find(id);
+
         }
     }
 }

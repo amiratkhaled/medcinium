@@ -43,6 +43,7 @@ public class View extends javax.swing.JFrame {
         rightPanel.revalidate();
         
         
+        this.setSize(3000, 1000);
         
     }
     
